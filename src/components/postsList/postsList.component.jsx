@@ -1,48 +1,45 @@
-import { Component } from 'react'
+import { useEffect, useState } from "react"
 import "./postList.style.css"
 
 import Post from '../post/post.component'
 
-export default class PostList extends Component {
- constructor() {
-  super()
-  this.state = {
-   posts: [],
-  }
- }
- componentDidMount() {
-  const postsDatabase = []
-  for (let i = 1; i < 3; i++) {
-   const postModel = {
-    user: {},
-    post: {},
-    comments: [],
-   }
-   fetch(`https://jsonplaceholder.typicode.com/posts/${i}`)
-    .then(res => res.json())
-    .then(data => postModel.post = data)
-    .catch(e => console.log(e))
 
-   fetch(`https://jsonplaceholder.typicode.com/posts/${i}/comments`)
-    .then(res => res.json())
-    .then(data => postModel.comments = data)
-    .catch(e => console.log(e))
+export default function PostList() {
+  const [postsDataBase, setPostsDataBase] = useState([])
+  const [usersDataBase, setUsersDataBase] = useState([])
+  const [commentsDataBase, setCommentsDataBase] = useState([])
 
-   fetch(`https://jsonplaceholder.typicode.com/users/${i}`)
-    .then(res => res.json())
-    .then(data => postModel.user = data)
-    .catch(e => console.log(e))
-   postsDatabase.push(postModel)
-  }
-  this.setState({ posts: postsDatabase })
- }
- render() {
-  console.log(this.state.posts)
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/posts')
+      .then(res => res.json())
+      .then(data => setPostsDataBase(data))
+      .catch(e => console.log(e))
+
+    fetch('https://jsonplaceholder.typicode.com/users')
+      .then(res => res.json())
+      .then(data => setUsersDataBase(data))
+      .catch(e => console.log(e))
+
+    fetch('https://jsonplaceholder.typicode.com/comments')
+      .then(res => res.json())
+      .then(data => setCommentsDataBase(data))
+      .catch(e => console.log(e))
+  }, [])
+
   return (
-   <div>
-    {this.state.posts.map((post, index) => <Post key={index} post={post} />)}
+    <div>
+      {postsDataBase.filter(post => post.id%2 === 0 & post.id%7 ===0 ).map(post => {
+        const authorData = usersDataBase.filter(user => user.id === post.userId)[0]
+        return (
+          <Post
+            key={post.id}
+            post={post}
+            author={usersDataBase.filter(user => user.id === post.userId)[0]}
+            comments={commentsDataBase.filter(comments => comments.postId === post.userId)}
+          />
+        )
+      })}
 
-   </div>
+    </div>
   )
- }
 }
